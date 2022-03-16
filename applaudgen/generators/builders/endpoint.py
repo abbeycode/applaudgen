@@ -4,6 +4,8 @@ from typing import Any
 from jinja2 import environment
 from dataclasses import dataclass, field
 from ..utils import *
+from typing import List
+from typing import Tuple
 
 class EndpointType(Enum):
     ROOT = auto()
@@ -109,15 +111,15 @@ class EndpointClassBuilder(ABC):
     def filter_type_code(self, filter_type: str) -> str:
         pass
 
-    def build_include_function_code(self, include_names: list[str]) -> str:
+    def build_include_function_code(self, include_names: List[str]) -> str:
         return self.jinja_env.get_template(f'{self.include_function_template_name}.jinja').render(include_names=include_names, endpoint_class=self.class_name)
 
-    def build_limit_function_code(self, limit_tuples: list[tuple[str, int, str]]) -> str:
+    def build_limit_function_code(self, limit_tuples: List[Tuple[str, int, str]]) -> str:
         # Make sure defualt limit is at first position
         limit_tuples.sort(key=lambda x: 0 if x[0] == 'default-limit' else 1)
         return self.jinja_env.get_template(f'{self.limit_function_template_name}.jinja').render(limit_tuples=limit_tuples, endpoint_class=self.class_name)
 
-    def build_fields_function_code(self, fields_tuples: list[tuple[str, str]]) -> str:
+    def build_fields_function_code(self, fields_tuples: List[Tuple[str, str]]) -> str:
         # Remove duplicates
         res_fields = [field for n, field in enumerate(fields_tuples) if field not in fields_tuples[:n]]
         return self.jinja_env.get_template(f'{self.fields_function_template_name}.jinja').render(fields_tuples=res_fields, endpoint_class=self.class_name)
@@ -125,10 +127,10 @@ class EndpointClassBuilder(ABC):
     def build_exists_function_code(self, exists_names: list) -> str:
         return self.jinja_env.get_template(f'{self.exists_function_template_name}.jinja').render(exists_names=exists_names, endpoint_class=self.class_name)
 
-    def build_sort_function_code(self, qualifiers: list[str]) -> str:
+    def build_sort_function_code(self, qualifiers: List[str]) -> str:
         return self.jinja_env.get_template(f'{self.sort_function_template_name}.jinja').render(qualifiers=qualifiers, endpoint_class=self.class_name)
 
-    def build_filter_function_code(self, filter_tuples: list[tuple[str, str, bool, str]]) -> str:
+    def build_filter_function_code(self, filter_tuples: List[Tuple[str, str, bool, str]]) -> str:
         return self.jinja_env.get_template(f'{self.filter_function_template_name}.jinja').render(filter_tuples=filter_tuples, endpoint_class=self.class_name)
 
     def __init__(self, jinja_env: environment, path: str, info: dict):
@@ -148,10 +150,10 @@ class EndpointClassBuilder(ABC):
         self.operation_get: self.GetOperation = None
         self.enums = {}
         self.endpoint_type = EndpointType.ROOT
-        self.tags: list[str] = []
+        self.tags: List[str] = []
         
-        self.leaf_endpoints: list[EndpointClassBuilder] = []
-        self.linkage_endpoints: list[EndpointClassBuilder] = []
+        self.leaf_endpoints: List[EndpointClassBuilder] = []
+        self.linkage_endpoints: List[EndpointClassBuilder] = []
 
         # Example path: /v1/users/{id}/relationships/visibleApps
         path_comp = self.path.split('/')
@@ -264,7 +266,7 @@ class EndpointClassBuilder(ABC):
 
         self.has_id_param = True
     
-    def __parse_operation_request_body(self, operation_name: str, info: dict) -> tuple[str, bool, str]:
+    def __parse_operation_request_body(self, operation_name: str, info: dict) -> Tuple[str, bool, str]:
         request_body = info['requestBody']
         assert request_body['required'] == True, f'Request body in operation {operation_name} in path {self.path} must be required'
 
@@ -334,7 +336,7 @@ class EndpointClassBuilder(ABC):
         if len(self.include_names) > 0:
             self.include_function_code = self.build_include_function_code(self.include_names)
 
-    def __parse_operation_responses(self, operation_name: str, info: dict) -> tuple[bool, str, bool, str]:
+    def __parse_operation_responses(self, operation_name: str, info: dict) -> Tuple[bool, str, bool, str]:
         deprecated = info.get('deprecated', False)
         response_type: str = None
         single_instance = None
@@ -371,7 +373,7 @@ class EndpointClassBuilder(ABC):
 
         return (deprecated, response_type, single_instance, description)
 
-    def __parse_include(self, info: dict) -> list[str]:
+    def __parse_include(self, info: dict) -> List[str]:
         assert info['schema']['type'] == 'array', f'Invalid include parameter in path {self.path}'
         assert info['schema']['items']['type'] == 'string', f'Invalid include parameter in path {self.path}'
         assert info['style'] == 'form', f'Invalid include parameter in path {self.path}'
@@ -381,7 +383,7 @@ class EndpointClassBuilder(ABC):
 
         return info['schema']['items']['enum']
 
-    def __parse_fields(self, name: str, info: dict) -> tuple[str, str]:
+    def __parse_fields(self, name: str, info: dict) -> Tuple[str, str]:
         assert info['schema']['type'] == 'array', f'Invalid field in path {self.path}'
         assert info['schema']['items']['type'] == 'string', f'Invalid field in path {self.path}'
         assert info['in'] == 'query', f'Invalid field in path {self.path}'
@@ -399,7 +401,7 @@ class EndpointClassBuilder(ABC):
         self.fields_enums[fields_name] = info['schema']['items']['enum']
         return fields_name, info['description']
 
-    def __parse_sort(self, info: dict) -> list[str]:
+    def __parse_sort(self, info: dict) -> List[str]:
         assert info['schema']['type'] == 'array', f'Invalid field in path {self.path}'
         assert info['schema']['items']['type'] == 'string', f'Invalid field in path {self.path}'
         assert info['in'] == 'query', f'Invalid field in path {self.path}'
@@ -419,7 +421,7 @@ class EndpointClassBuilder(ABC):
 
         return compact_qualifiers
 
-    def __parse_limit(self, name: str, info: dict) -> tuple[str, int, str]:
+    def __parse_limit(self, name: str, info: dict) -> Tuple[str, int, str]:
         assert info['schema']['type'] == 'integer', f'Invalid limit parameter in path {self.path}'
         assert info['in'] == 'query', f'Invalid limit parameter in path {self.path}'
         assert info['style'] == 'form', f'Invalid limit parameter in path {self.path}'
@@ -438,7 +440,7 @@ class EndpointClassBuilder(ABC):
 
         return limit_name, info['schema']['maximum'], info['description']
     
-    def __parse_filter(self, name: str, info: dict) -> tuple[str, str, bool, str]:
+    def __parse_filter(self, name: str, info: dict) -> Tuple[str, str, bool, str]:
         assert info['schema']['type'] == 'array', f'Invalid filter in path {self.path}'
         assert info['schema']['items']['type'] == 'string', f'Invalid filter in path {self.path}'
         assert info['in'] == 'query', f'Invalid filter in path {self.path}'

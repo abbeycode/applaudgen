@@ -4,7 +4,7 @@ from re import template
 from jinja2.environment import Template
 from jinja2.utils import internalcode
 import orjson, os
-from typing import Any, Optional
+from typing import Any, Optional, List, Tuple, Type
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from .builders.schema import SchemaClassBuilder
 from .builders.endpoint import EndpointClassBuilder, EndpointType
@@ -13,8 +13,8 @@ from .utils import *
 class SDKGenerator(ABC):
 
     template_subdir: str
-    schema_class_builder_class: type[SchemaClassBuilder]
-    endpoint_class_builder_class: type[EndpointClassBuilder]
+    schema_class_builder_class: Type[SchemaClassBuilder]
+    endpoint_class_builder_class: Type[EndpointClassBuilder]
 
     def __init__(self, spec_file: str, output_dir: str):
         with open(spec_file, 'r') as f:
@@ -37,7 +37,7 @@ class SDKGenerator(ABC):
         self.jinja_env.filters["simple_singular"] = simple_singular
         self.jinja_env.add_extension("jinja2.ext.do")
 
-    def build_schemas_code(self, definitions: dict, *, super_class: Optional[str] = None, order_keys: list = [], in_models: bool = False) -> tuple[list, dict]:
+    def build_schemas_code(self, definitions: dict, *, super_class: Optional[str] = None, order_keys: list = [], in_models: bool = False) -> Tuple[list, dict]:
         schemas_code = []
         remain_enums = {}
         sorted_keys = order_keys + [key for key in definitions.keys() if key not in order_keys]
@@ -51,13 +51,13 @@ class SDKGenerator(ABC):
 
         return schemas_code, remain_enums
 
-    def build_endpoints_code(self, paths: dict) -> tuple[dict, dict]:
+    def build_endpoints_code(self, paths: dict) -> Tuple[dict, dict]:
         not_allowed_operations = ['put', 'options', 'head', 'trace']
         allowed_operations = ['get', 'post', 'delete', 'patch']
 
-        root_endpoints: list[EndpointClassBuilder] = []
-        leaf_endpoints: list[EndpointClassBuilder] = []
-        linkage_endpoints: list[EndpointClassBuilder] = []
+        root_endpoints: List[EndpointClassBuilder] = []
+        leaf_endpoints: List[EndpointClassBuilder] = []
+        linkage_endpoints: List[EndpointClassBuilder] = []
         endpoints_grouped_by_tag = {}
 
         def create_and_add_dummy_root(dummy_path: str, child: EndpointClassBuilder, leaf: bool):

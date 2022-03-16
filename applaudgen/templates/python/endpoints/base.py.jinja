@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import Any, Union, Optional, TypeVar
+from typing import Any, Union, Optional, TypeVar, List, Type
 import requests
 from ..schemas.responses import JSONResponse, ErrorResponse, GzipResponse, GzipStreamResponse
 from ..schemas.requests import ApplaudRequest
@@ -27,9 +27,9 @@ class EndpointException(Exception):
 
     response: requests.Response
     request: Optional[requests.Request]
-    errors: list[ErrorResponse.Error]
+    errors: List[ErrorResponse.Error]
     
-    def __init__(self, errors: list[ErrorResponse.Error], response: requests.Response):
+    def __init__(self, errors: List[ErrorResponse.Error], response: requests.Response):
         self.response = response
         self.request = response.request
         self.errors = errors
@@ -47,7 +47,7 @@ class Endpoint:
         self.endpoint_path = ENDPOINT_BASE_URL + self.path
         self._query_params = {}
 
-    def _set_includes(self, includes: list[Enum]):
+    def _set_includes(self, includes: List[Enum]):
         values = [r.value for r in includes]
         self._query_params['include'] = ','.join(values)
 
@@ -57,18 +57,18 @@ class Endpoint:
         else:
             self._query_params['limit'] = limit
 
-    def _set_fields(self, key: str, value: list[Enum]):
+    def _set_fields(self, key: str, value: List[Enum]):
         items = [item.value for item in value]
         self._query_params[f'fields[{key}]'] = ','.join(items)
 
-    def _set_filter(self, key: str, value: list[Union[Enum, str]]):
+    def _set_filter(self, key: str, value: List[Union[Enum, str]]):
         items = [item.value if type(item) is Enum else item for item in value]
         self._query_params[f'filter[{key}]'] = ','.join(items)
 
     def _set_exists(self, key: str, value: str):
         self._query_params[f'exists[{key}]'] = value
 
-    def _set_sort(self, expressions: list[str]):
+    def _set_sort(self, expressions: List[str]):
         self._query_params['sort'] = ','.join(expressions)
 
     def __parse_response(self, response: requests.Response) -> Any:
@@ -80,7 +80,7 @@ class Endpoint:
             if response.ok:
                 return json
 
-            errors: list[ErrorResponse.Error] = ErrorResponse.parse_obj(json).errors if json else None
+            errors: List[ErrorResponse.Error] = ErrorResponse.parse_obj(json).errors if json else None
 
             if errors:
                 # Errors from the App Store Connect service
@@ -135,17 +135,17 @@ class GenericEndpoint(Endpoint):
         super().__init__(session)
         self.endpoint_path = url
 
-    def get(self, *, response_class: type[RESPONSE]) -> RESPONSE:
+    def get(self, *, response_class: Type[RESPONSE]) -> RESPONSE:
         '''Get one or more resources.'''
         response_json = self._perform_get()
         return response_class.parse_obj(response_json)
 
-    def create(self, request: Union[ApplaudRequest, dict], *, response_class: type[RESPONSE]=type(None)) -> RESPONSE:
+    def create(self, request: Union[ApplaudRequest, dict], *, response_class: Type[RESPONSE]=type(None)) -> RESPONSE:
         '''Create one or more resources.'''
         response_json = self._perform_post(request)
         return response_class.parse_obj(response_json) if response_class else None
 
-    def update(self, request: Union[ApplaudRequest, dict], *, response_class: type[RESPONSE]=type(None)) -> RESPONSE:
+    def update(self, request: Union[ApplaudRequest, dict], *, response_class: Type[RESPONSE]=type(None)) -> RESPONSE:
         '''Modify one or more resources.'''
         response_json = self._perform_patch(request)
         return response_class.parse_obj(response_json) if response_class else None

@@ -1,4 +1,5 @@
 import os
+from typing import Dict
 from typing import Union
 from .utils import *
 from . import SDKGenerator, SchemaClassBuilder, EndpointClassBuilder
@@ -39,7 +40,7 @@ class PythonSchemaClassBuilder(SchemaClassBuilder):
     enum_template_name = 'schemas/enum.py'
 
     def entitlements_type_code(self) -> str:
-        return 'dict[str, dict[str, str]]'
+        return 'Dict[str, Dict[str, str]]'
 
     def canonical_type_code(self, type: str, format: str = None) -> str:
         return _canonical_type_code(type, format)
@@ -76,7 +77,7 @@ class PythonSchemaClassBuilder(SchemaClassBuilder):
         else:
             canonical_type = self.canonical_type_code(item_type)
 
-        return f'list[{canonical_type}]'
+        return f'List[{canonical_type}]'
 
     def external_enum_name(self, enum) -> str:
         if enum == ["NONE", "INFREQUENT_OR_MILD", "FREQUENT_OR_INTENSE"]:
@@ -96,7 +97,7 @@ class PythonEndpointClassBuilder(EndpointClassBuilder):
 
     def filter_type_code(self, filter_type: str) -> str:
         canonical_type = _canonical_type_code(filter_type)
-        return f'Union[{canonical_type}, list[{canonical_type}]]'
+        return f'Union[{canonical_type}, List[{canonical_type}]]'
 
     def filter_enum_type(self, name: str) -> str:
         return self.__filter_enum_map.get(name, None)

@@ -1,6 +1,7 @@
 {% include 'header.jinja' %}
 
 from .schemas.enums import StringEnum
+from typing import Dict, List, Tuple
 
 {% for name, values in include_enums.items() %}
 class {{ name|simple_singular|capfirst }}Include(StringEnum):

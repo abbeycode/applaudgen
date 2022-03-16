@@ -1,7 +1,7 @@
 {%- macro fields_params(fields_tuples) %}
 {%- for name, comment in fields_tuples -%}
 {% set fields_type =  name|simple_singular|capfirst + 'Field' -%}
-, {{ name|simple_singular|snake_case }}: Union[{{ fields_type }}, list[{{ fields_type }}]]=None
+, {{ name|simple_singular|snake_case }}: Union[{{ fields_type }}, List[{{ fields_type }}]]=None
 {%- endfor -%}
 {%- endmacro -%}
 
@@ -12,7 +12,7 @@ def fields(self, *{{ fields_params(fields_tuples) }}) -> {{ endpoint_class }}:
     {% set fields_type =  field_name|simple_singular|capfirst + 'Field' %}
 
     :param {{ param_name }}: {{ comment }}
-    :type {{ param_name }}: Union[{{ fields_type }}, list[{{ fields_type }}]] = None
+    :type {{ param_name }}: Union[{{ fields_type }}, List[{{ fields_type }}]] = None
 {% endfor %}
 
     :returns: self

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Union
 from jinja2 import Environment
 from ..utils import *
+from typing import Tuple
 
 class SchemaClassBuilder(ABC):
 
@@ -45,7 +46,7 @@ class SchemaClassBuilder(ABC):
         pass
 
     @abstractmethod
-    def build_attribute_code(self, name: str, type: str, is_required: bool, default_value: str, is_deprecated: bool) -> tuple[str, str]:
+    def build_attribute_code(self, name: str, type: str, is_required: bool, default_value: str, is_deprecated: bool) -> Tuple[str, str]:
         pass
 
     __trace_enum_map = {
@@ -95,7 +96,7 @@ class SchemaClassBuilder(ABC):
             values=values
         )
 
-    def __parse_property_type(self, property_name: str, property_dict: dict) -> tuple[str, str, bool]:
+    def __parse_property_type(self, property_name: str, property_dict: dict) -> Tuple[str, str, bool]:
         deprecated = property_dict.get('deprecated', False)
 
         if '$ref' in property_dict:
