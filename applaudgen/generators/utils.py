@@ -21,3 +21,12 @@ def simple_singular(value: str):
     else:
         return value
         
+def removeprefix(text, prefix):
+    """
+    https://stackoverflow.com/a/16891418/105717
+    """
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text
+    
+    

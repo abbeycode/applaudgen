@@ -131,9 +131,17 @@ class GenericEndpoint(Endpoint):
     RESPONSE = TypeVar("RESPONSE", bound=Optional[JSONResponse])
 
     def __init__(self, session: requests.Session, url: str):
-        self.path = url.removeprefix(ENDPOINT_BASE_URL)
+        self.path = GenericEndpoint.removeprefix(url, ENDPOINT_BASE_URL)
         super().__init__(session)
         self.endpoint_path = url
+        
+    def removeprefix(text, prefix):
+        """
+        https://stackoverflow.com/a/16891418/105717
+        """
+        if text.startswith(prefix):
+            return text[len(prefix):]
+        return text
 
     def get(self, *, response_class: Type[RESPONSE]) -> RESPONSE:
         '''Get one or more resources.'''

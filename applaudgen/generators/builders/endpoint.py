@@ -415,7 +415,7 @@ class EndpointClassBuilder(ABC):
         for q in qualifiers:
             assert not q.startswith('+'), f'Invalid qualifier `{q}` in path {self.path}'
             if q.startswith('-'):
-                assert q.removeprefix('-') in qualifiers, f'Invalid qualifier `{q}` in path {self.path}'
+                assert removeprefix(q, '-') in qualifiers, f'Invalid qualifier `{q}` in path {self.path}'
             else:
                 assert '-' + q in qualifiers, f'Invalid qualifier `{q}` in path {self.path}'
 
