@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from re import template
 from jinja2.environment import Template
 from jinja2.utils import internalcode
-import orjson, os
+import json, os
 from typing import Any, Optional, List, Tuple, Type
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from .builders.schema import SchemaClassBuilder
@@ -18,7 +18,7 @@ class SDKGenerator(ABC):
 
     def __init__(self, spec_file: str, output_dir: str):
         with open(spec_file, 'r') as f:
-            self.spec = orjson.loads(f.read())
+            self.spec = json.loads(f.read())
 
         cur_path = os.path.dirname(__file__)
         self.output_dir = output_dir
